@@ -18,6 +18,10 @@ This extension allow monitoring battery and toggling RGB lightning on/off for su
 
 You need [HeadsetControl](https://github.com/Sapd/HeadsetControl#building) installed.
 
+Be sure to reload udev rules after installation.
+
+`sudo udevadm control --reload-rules && sudo udevadm trigger`
+
 ## How to install
 
 - Clone this repo
