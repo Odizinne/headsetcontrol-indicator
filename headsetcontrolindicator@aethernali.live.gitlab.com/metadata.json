@@ -1,0 +1,8 @@
+{
+  "name": "HeadsetControl Indicator",
+  "description": "Gnome extension using headsetcontrol to monitor battery.",
+  "uuid": "headsetcontrolindicator@aethernali.live.gitlab.com",
+  "shell-version": [
+    "42"
+  ]
+}
