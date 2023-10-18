@@ -4,7 +4,7 @@ Gnome extension using headsetcontrol to monitor battery.
 
 [<img src="images/Screenshot_from_2023-10-17_18-25-14.png">](images/Screenshot_from_2023-10-17_18-25-14.png)
 
-I'm a complete JavaScript noob. This was mostly made with the use of ChatGPT. JS purrist, don't read this code, your eyes will (probably) suffer.
+I'm a complete JavaScript noob. This was mostly made with the help of ChatGPT. JS purrist, don't read this code, your eyes will (probably) suffer.
 
 [[_TOC_]]
 
@@ -16,12 +16,12 @@ This extension allow monitoring battery and toggling RGB lightning on/off for su
 
 ## Compatible gnome-shell version
 
-- 45 (WIP, separate branch avaible later)
+- 45 (Need testing)
 - 44
 - 43
 - 42
-- 41 (need testing before i enable it)
-- 40 (need testing before i enable it)
+- 41
+- 40
 
 ## Dependencies
 
@@ -35,7 +35,13 @@ Be sure to reload udev rules after installation.
 
 - Clone this repo
 
+Gnome 40 - 44
+
 `git clone https://gitlab.com/aethernali.live/headsetcontrol-indicator.git`
+
+Gnome 45
+
+`git clone -b gnome45 https://gitlab.com/aethernali.live/headsetcontrol-indicator.git`
 
 - cd to the directory
 
@@ -54,7 +60,6 @@ Be sure to reload udev rules after installation.
 ## To-do
 
 - Settings menu (Auto disable / enable RGB through battery threshold, Option to disable low battery notification, data fetch rate)
-- Gnome 45
 
 ## Credits
 
