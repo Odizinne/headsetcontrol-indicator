@@ -99,9 +99,13 @@ class Indicator extends PanelMenu.Button {
                     const percentage = parseInt(batteryPercentage[0], 10);
                     this.label.text = `${percentage}%`;
 
-                    // Check if battery is low and send a notification
-                    if (percentage <= LOW_BATTERY_THRESHOLD) {
+                    if (percentage > LOW_BATTERY_THRESHOLD) {
+                        this.lowBatteryNotificationSent = false;
+                    }
+
+                    if (!this.lowBatteryNotificationSent && percentage <= LOW_BATTERY_THRESHOLD) {
                         Main.notify('Low Battery', `Battery is at ${percentage}%`);
+                        this.lowBatteryNotificationSent = true;
                     }
                     return;
                 }
@@ -110,10 +114,6 @@ class Indicator extends PanelMenu.Button {
 
         // If the command doesn't produce the expected output, show an error message
         this.label.text = 'N/A';
-    }
-
-    executeShellCommand(command) {
-        GLib.spawn_command_line_async(command);
     }
 });
 
