@@ -3,11 +3,7 @@
   "description": "Gnome extension using headsetcontrol to monitor battery.",
   "uuid": "headsetcontrolindicator@aethernali.live.gitlab.com",
   "shell-version": [
-    "40",
-    "41",
-    "42",
-    "43",
-    "44"
+    "45"
   ],
   "url": "https://gitlab.com/aethernali.live/headsetcontrol-indicator",
   "version": 1
