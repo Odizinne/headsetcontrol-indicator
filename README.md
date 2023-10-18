@@ -4,9 +4,7 @@ Gnome extension using headsetcontrol to monitor battery.
 
 [<img src="images/Screenshot_from_2023-10-17_18-25-14.png">](images/Screenshot_from_2023-10-17_18-25-14.png)
 
-This extension is made for my own usage on PopOs 22.04 and i have no plan to update it to gnome 45 for now. I'll test gnome 43 and 44 and enable usage for these versions if everything is fine when i have time.
-
-Also I'm a complete JavaScript noob. This was mostly made with the use of ChatGPT. JS purrist, don't read this code, your eyes will (probably) suffer.
+I'm a complete JavaScript noob. This was mostly made with the use of ChatGPT. JS purrist, don't read this code, your eyes will (probably) suffer.
 
 [[_TOC_]]
 
@@ -15,6 +13,15 @@ Also I'm a complete JavaScript noob. This was mostly made with the use of ChatGP
 This extension allow monitoring battery and toggling RGB lightning on/off for supported headset.
 
 [Supported devices](https://github.com/Sapd/HeadsetControl#supported-headsets)
+
+## Compatible gnome-shell version
+
+- 45 (WIP, separate branch avaible later)
+- 44
+- 43
+- 42
+- 41 (need testing before i enable it)
+- 40 (need testing before i enable it)
 
 ## Dependencies
 
@@ -47,6 +54,7 @@ Be sure to reload udev rules after installation.
 ## To-do
 
 - Settings menu (Auto disable / enable RGB through battery threshold, Option to disable low battery notification, data fetch rate)
+- Gnome 45
 
 ## Credits
 
