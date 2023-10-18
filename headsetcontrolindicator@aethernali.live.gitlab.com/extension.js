@@ -11,7 +11,7 @@ const _ = ExtensionUtils.gettext;
 
 const LOW_BATTERY_THRESHOLD = 10; // Set the low battery threshold (in percent)
 
-const UPDATE_INTERVAL_SECONDS = 1; // Set the update interval (in seconds)
+const UPDATE_INTERVAL_SECONDS = 10; // Set the update interval (in seconds)
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
