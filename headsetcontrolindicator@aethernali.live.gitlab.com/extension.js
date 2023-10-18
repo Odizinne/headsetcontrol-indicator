@@ -39,35 +39,52 @@ class Indicator extends PanelMenu.Button {
         this.add_child(container);
 
         this.label = labelBin.child;
-
-        this.updateBatteryStatus(); // Initial update
-
-        // Create a separator to visually center the menu
-        let separator = new PopupMenu.PopupSeparatorMenuItem();
-        this.menu.addMenuItem(separator);
+        this.rgbEnabled = false; // Initialize RGB capability status
 
         // Create a menu item to enable RGB lighting
-        let enableRGBItem = new PopupMenu.PopupMenuItem(_('Enable RGB Lighting'));
-        enableRGBItem.connect('activate', () => {
+        this.enableRGBItem = new PopupMenu.PopupMenuItem(_('Enable RGB Lighting'));
+        this.enableRGBItem.connect('activate', () => {
             this.executeShellCommand('headsetcontrol -l 1');
         });
-        this.menu.addMenuItem(enableRGBItem);
+        this.menu.addMenuItem(this.enableRGBItem);
+        this.enableRGBItem.actor.hide(); // Initially hide the menu item
 
         // Add a spacer (visual separator)
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
         // Create a menu item to disable RGB lighting
-        let disableRGBItem = new PopupMenu.PopupMenuItem(_('Disable RGB Lighting'));
-        disableRGBItem.connect('activate', () => {
+        this.disableRGBItem = new PopupMenu.PopupMenuItem(_('Disable RGB Lighting'));
+        this.disableRGBItem.connect('activate', () => {
             this.executeShellCommand('headsetcontrol -l 0');
         });
-        this.menu.addMenuItem(disableRGBItem);
+        this.menu.addMenuItem(this.disableRGBItem);
+        this.disableRGBItem.actor.hide(); // Initially hide the menu item
+
+        this.updateCapabilities(); // Check headset capabilities
 
         // Set up a timer to update the battery status at regular intervals
         GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
             this.updateBatteryStatus();
             return GLib.SOURCE_CONTINUE;
         });
+    }
+
+    updateCapabilities() {
+        // Run the shell command and parse the output to check capabilities
+        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol --capabilities');
+        const outputLines = stdout.toString().split('\n');
+        for (const line of outputLines) {
+            if (line.includes('lights')) {
+                this.rgbEnabled = true; // "lights" capability found
+                this.enableRGBItem.actor.show(); // Show the menu item
+                this.disableRGBItem.actor.show(); // Show the menu item
+                return;
+            }
+        }
+        // If "lights" capability not found, disable RGB menu entries
+        this.rgbEnabled = false;
+        this.enableRGBItem.actor.hide(); // Hide the menu item
+        this.disableRGBItem.actor.hide(); // Hide the menu item
     }
 
     updateBatteryStatus() {
