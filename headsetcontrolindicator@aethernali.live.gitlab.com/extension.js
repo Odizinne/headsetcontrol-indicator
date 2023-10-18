@@ -44,22 +44,30 @@ class Indicator extends PanelMenu.Button {
         // Create a menu item to enable RGB lighting
         this.enableRGBItem = new PopupMenu.PopupMenuItem(_('Enable RGB Lighting'));
         this.enableRGBItem.connect('activate', () => {
-            this.executeShellCommand('headsetcontrol -l 1');
+            GLib.spawn_command_line_sync('headsetcontrol -l 1');
         });
         this.menu.addMenuItem(this.enableRGBItem);
         this.enableRGBItem.actor.hide(); // Initially hide the menu item
 
-        // Add a spacer (visual separator)
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
         // Create a menu item to disable RGB lighting
         this.disableRGBItem = new PopupMenu.PopupMenuItem(_('Disable RGB Lighting'));
         this.disableRGBItem.connect('activate', () => {
-            this.executeShellCommand('headsetcontrol -l 0');
+            GLib.spawn_command_line_sync('headsetcontrol -l 0');
         });
         this.menu.addMenuItem(this.disableRGBItem);
         this.disableRGBItem.actor.hide(); // Initially hide the menu item
 
+        // Add a spacer (visual separator)
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
+
+	// Create a menu item to refresh capabilities
+        this.refreshCapabilitiesItem = new PopupMenu.PopupMenuItem(_('Refresh Capabilities'));
+        this.refreshCapabilitiesItem.connect('activate', () => {
+            this.updateCapabilities();
+        });
+        this.menu.addMenuItem(this.refreshCapabilitiesItem);
+        this.updateBatteryStatus();
+	
         this.updateCapabilities(); // Check headset capabilities
 
         // Set up a timer to update the battery status at regular intervals
