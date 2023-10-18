@@ -2,6 +2,8 @@
 
 Gnome extension using headsetcontrol to monitor battery.
 
+[<img src="images/Screenshot_from_2023-10-17_18-25-14.png">](images/Screenshot_from_2023-10-17_18-25-14.png)
+
 This extension is made for my own usage on PopOs 22.04 and i have no plan to update it to gnome 45 for now. I'll test gnome 43 and 44 and enable usage for these versions if everything is fine when i have time.
 
 Also I'm a complete JavaScript noob. This was mostly made with the use of ChatGPT. JS purrist, don't read this code, your eyes will (probably) suffer.
