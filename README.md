@@ -1,6 +1,6 @@
 # HeadsetControl Indicator
 
-Gnome extension using headsetcontrol to monitor battery, updated every 60 seconds.
+Gnome extension using headsetcontrol to monitor battery.
 
 This extension is made for my own usage on PopOs 22.04 and i have no plan to update it to gnome 45 for now. I'll test gnome 43 and 44 and enable usage for these versions if everything is fine when i have time.
 
