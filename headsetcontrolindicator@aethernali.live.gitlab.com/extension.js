@@ -1,13 +1,17 @@
 const GETTEXT_DOMAIN = 'my-indicator-extension';
 
-const { GObject, St, Gio, GLib, Clutter } = imports.gi;
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import Clutter from 'gi://Clutter';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const _ = ExtensionUtils.gettext;
+//const _ = ExtensionUtils.gettext;
 
 const LOW_BATTERY_THRESHOLD = 10; // Set the low battery threshold (in percent)
 
@@ -49,9 +53,6 @@ class Indicator extends PanelMenu.Button {
         this.menu.addMenuItem(this.enableRGBItem);
         this.enableRGBItem.actor.hide(); // Initially hide the menu item
 
-        // Add a spacer (visual separator)
-        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
         // Create a menu item to disable RGB lighting
         this.disableRGBItem = new PopupMenu.PopupMenuItem(_('Disable RGB Lighting'));
         this.disableRGBItem.connect('activate', () => {
@@ -59,8 +60,20 @@ class Indicator extends PanelMenu.Button {
         });
         this.menu.addMenuItem(this.disableRGBItem);
         this.disableRGBItem.actor.hide(); // Initially hide the menu item
+        
+        // Add a spacer (visual separator)
+        this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
+        // Create a menu item to refresh capabilities
+        this.refreshCapabilitiesItem = new PopupMenu.PopupMenuItem(_('Refresh Capabilities'));
+        this.refreshCapabilitiesItem.connect('activate', () => {
+            this.updateCapabilities();
+        });
+        this.menu.addMenuItem(this.refreshCapabilitiesItem);
+        //this.refreshCapabilitiesItem.actor.hide(); // Initially hide the menu item
+	
         this.updateCapabilities(); // Check headset capabilities
+        this.updateBatteryStatus();
 
         // Set up a timer to update the battery status at regular intervals
         GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
@@ -117,16 +130,10 @@ class Indicator extends PanelMenu.Button {
     }
 });
 
-class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
-
-        ExtensionUtils.initTranslations(GETTEXT_DOMAIN);
-    }
-
+export default class HeadsetControlIndicatorExtension extends Extension {
     enable() {
         this._indicator = new Indicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
+        Main.panel.addToStatusArea(this.uuid, this._indicator);
     }
 
     disable() {
@@ -136,6 +143,6 @@ class Extension {
 }
 
 function init(meta) {
-    return new Extension(meta.uuid);
+    return new HeadsetControlIndicatorExtension(meta.uuid);
 }
 
