@@ -23,7 +23,7 @@ class Indicator extends PanelMenu.Button {
         // Create a bin for the icon
         const iconBin = new St.Bin();
         iconBin.child = new St.Icon({
-            icon_name: 'audio-headset',
+            icon_name: 'audio-headphones-symbolic',
             style_class: 'system-status-icon',
         });
 
