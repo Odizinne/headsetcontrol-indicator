@@ -31,20 +31,18 @@ class Indicator extends PanelMenu.Button {
             style_class: 'system-status-icon',
         });
 
-        // Create a bin for the battery icon
-        const iconChargingBin = new St.Bin();
-        iconChargingBin.child = new St.Icon({
-            icon_name: 'battery-100',
-            style_class: 'system-status-icon',
-        });
+        // Create a bin for the label
+        const labelBin = new St.Bin();
+        labelBin.child = new St.Label({ text: '' });
+        labelBin.y_align = Clutter.ActorAlign.CENTER;
 
         // Add the icon bin and icon charging bin next to each other
         container.add_child(iconBin);
-        container.add_child(iconChargingBin);
+        container.add_child(labelBin);
 
         this.add_child(container);
 
-        this.iconCharging = iconChargingBin.child;
+        this.label = labelBin.child;
         this.rgbEnabled = false; // Initialize RGB capability status
 
         // Create a menu item to enable RGB lighting
@@ -110,39 +108,14 @@ updateBatteryStatus() {
     for (const line of outputLines) {
         if (line.startsWith('Battery:')) {
             if (line.includes('Charging')) {
-                this.iconCharging.icon_name = 'battery-full-charging-symbolic'
+                this.label.text = 'Charging';
             } else {
                 const batteryPercentage = line.match(/\d+/);
                 if (batteryPercentage) {
                     const percentage = parseInt(batteryPercentage[0], 10);
-
-                    // Determine the battery icon based on the percentage
-                    let batteryIconName = 'battery-level-100-symbolic'; // Default icon
-                    if (percentage >= 90 && percentage <= 100) {
-                        batteryIconName = 'battery-level-100-symbolic';
-                    } else if (percentage >= 80 && percentage < 90) {
-                        batteryIconName = 'battery-level-90-symbolic';
-                    } else if (percentage >= 70 && percentage < 80) {
-                        batteryIconName = 'battery-level-80-symbolic';
-                    } else if (percentage >= 60 && percentage < 70) {
-                        batteryIconName = 'battery-level-70-symbolic';
-                    } else if (percentage >= 50 && percentage < 60) {
-                        batteryIconName = 'battery-level-60-symbolic';
-                    } else if (percentage >= 40 && percentage < 50) {
-                        batteryIconName = 'battery-level-50-symbolic';
-                    } else if (percentage >= 30 && percentage < 40) {
-                        batteryIconName = 'battery-level-40-symbolic';
-                    } else if (percentage >= 20 && percentage < 30) {
-                        batteryIconName = 'battery-level-30-symbolic';
-                    } else if (percentage >= 10 && percentage < 20) {
-                        batteryIconName = 'battery-level-20-symbolic';
-                    } else if (percentage < 10) {
-                        batteryIconName = 'battery-level-10-symbolic';
-                    }
-
-                    this.iconCharging.icon_name = batteryIconName;
+                    this.label.text = `${percentage}%`;
                 } else {
-                    this.iconCharging.icon_name = 'battery-missing-symbolic';
+                    this.label.text = 'N/A';
                 }
             }
             return;
