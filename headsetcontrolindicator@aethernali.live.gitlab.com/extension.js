@@ -56,7 +56,7 @@ class Indicator extends PanelMenu.Button {
         // Create a menu item to disable RGB lighting
         this.disableRGBItem = new PopupMenu.PopupMenuItem(_('Disable RGB Lighting'));
         this.disableRGBItem.connect('activate', () => {
-            GLib.spawn_command_line_sync('headsetcontrol -l 1');
+            GLib.spawn_command_line_sync('headsetcontrol -l 0');
         });
         this.menu.addMenuItem(this.disableRGBItem);
         this.disableRGBItem.actor.hide(); // Initially hide the menu item
@@ -100,34 +100,31 @@ class Indicator extends PanelMenu.Button {
         this.disableRGBItem.actor.hide(); // Hide the menu item
     }
 
-    updateBatteryStatus() {
-        // Run the shell command and parse the output
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+updateBatteryStatus() {
+    // Run the shell command and parse the output
+    const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
 
-        const outputLines = stdout.toString().split('\n');
-        for (const line of outputLines) {
-            if (line.startsWith('Battery:')) {
+    const outputLines = stdout.toString().split('\n');
+    for (const line of outputLines) {
+        if (line.startsWith('Battery:')) {
+            if (line.includes('Charging')) {
+                this.label.text = 'Charging';
+            } else {
                 const batteryPercentage = line.match(/\d+/);
                 if (batteryPercentage) {
                     const percentage = parseInt(batteryPercentage[0], 10);
                     this.label.text = `${percentage}%`;
-
-                    if (percentage > LOW_BATTERY_THRESHOLD) {
-                        this.lowBatteryNotificationSent = false;
-                    }
-
-                    if (!this.lowBatteryNotificationSent && percentage <= LOW_BATTERY_THRESHOLD) {
-                        Main.notify('Low Battery', `Battery is at ${percentage}%`);
-                        this.lowBatteryNotificationSent = true;
-                    }
-                    return;
+                } else {
+                    this.label.text = 'N/A';
                 }
             }
+            return;
         }
-
-        // If the command doesn't produce the expected output, show an error message
-        this.label.text = 'N/A';
     }
+
+    // If the command doesn't produce the expected output, show an error message
+//    this.label.text = 'N/A';
+}
 });
 
 export default class HeadsetControlIndicatorExtension extends Extension {
