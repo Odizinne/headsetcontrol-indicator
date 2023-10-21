@@ -9,8 +9,6 @@ const PopupMenu = imports.ui.popupMenu;
 
 const _ = ExtensionUtils.gettext;
 
-const LOW_BATTERY_THRESHOLD = 10; // Set the low battery threshold (in percent)
-
 const UPDATE_INTERVAL_SECONDS = 10; // Set the update interval (in seconds)
 
 const Indicator = GObject.registerClass(
@@ -95,34 +93,28 @@ class Indicator extends PanelMenu.Button {
         this.disableRGBItem.actor.hide(); // Hide the menu item
     }
 
-    updateBatteryStatus() {
-        // Run the shell command and parse the output
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+updateBatteryStatus() {
+    // Run the shell command and parse the output
+    const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
 
-        const outputLines = stdout.toString().split('\n');
-        for (const line of outputLines) {
-            if (line.startsWith('Battery:')) {
+    const outputLines = stdout.toString().split('\n');
+    for (const line of outputLines) {
+        if (line.startsWith('Battery:')) {
+            if (line.includes('Charging')) {
+                this.label.text = 'Charging';
+            } else {
                 const batteryPercentage = line.match(/\d+/);
                 if (batteryPercentage) {
                     const percentage = parseInt(batteryPercentage[0], 10);
                     this.label.text = `${percentage}%`;
-
-                    if (percentage > LOW_BATTERY_THRESHOLD) {
-                        this.lowBatteryNotificationSent = false;
-                    }
-
-                    if (!this.lowBatteryNotificationSent && percentage <= LOW_BATTERY_THRESHOLD) {
-                        Main.notify('Low Battery', `Battery is at ${percentage}%`);
-                        this.lowBatteryNotificationSent = true;
-                    }
-                    return;
+                } else {
+                    this.label.text = 'N/A';
                 }
             }
+            return;
         }
-
-        // If the command doesn't produce the expected output, show an error message
-        this.label.text = 'N/A';
     }
+}
 });
 
 class Extension {
