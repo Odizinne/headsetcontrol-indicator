@@ -9,7 +9,7 @@ const PopupMenu = imports.ui.popupMenu;
 
 const _ = ExtensionUtils.gettext;
 
-const UPDATE_INTERVAL_SECONDS = 10; // Set the update interval (in seconds)
+const UPDATE_INTERVAL_SECONDS = 5; // Set the update interval (in seconds)
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
@@ -18,10 +18,10 @@ class Indicator extends PanelMenu.Button {
 
         const container = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
 
-        // Create a bin for the icon
+        // Create a bin for headset the icon
         const iconBin = new St.Bin();
         iconBin.child = new St.Icon({
-            icon_name: 'audio-headphones-symbolic',
+            icon_name: 'audio-headset-symbolic',
             style_class: 'system-status-icon',
         });
 
@@ -30,7 +30,7 @@ class Indicator extends PanelMenu.Button {
         labelBin.child = new St.Label({ text: '' });
         labelBin.y_align = Clutter.ActorAlign.CENTER;
 
-        // Add the icon bin and label bin next to each other
+        // Add the icon bin and icon charging bin next to each other
         container.add_child(iconBin);
         container.add_child(labelBin);
 
@@ -54,19 +54,20 @@ class Indicator extends PanelMenu.Button {
         });
         this.menu.addMenuItem(this.disableRGBItem);
         this.disableRGBItem.actor.hide(); // Initially hide the menu item
-
+        
         // Add a spacer (visual separator)
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
 
-	// Create a menu item to refresh capabilities
+        // Create a menu item to refresh capabilities
         this.refreshCapabilitiesItem = new PopupMenu.PopupMenuItem(_('Refresh Capabilities'));
         this.refreshCapabilitiesItem.connect('activate', () => {
             this.updateCapabilities();
         });
         this.menu.addMenuItem(this.refreshCapabilitiesItem);
-        this.updateBatteryStatus();
+        //this.refreshCapabilitiesItem.actor.hide(); // Initially hide the menu item
 	
         this.updateCapabilities(); // Check headset capabilities
+        this.updateBatteryStatus();
 
         // Set up a timer to update the battery status at regular intervals
         GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
@@ -93,28 +94,30 @@ class Indicator extends PanelMenu.Button {
         this.disableRGBItem.actor.hide(); // Hide the menu item
     }
 
-updateBatteryStatus() {
-    // Run the shell command and parse the output
-    const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+    updateBatteryStatus() {
+        // Run the shell command and parse the output
+        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+        const outputLines = stdout.toString().split('\n');
+        let status = '';
 
-    const outputLines = stdout.toString().split('\n');
-    for (const line of outputLines) {
-        if (line.startsWith('Battery:')) {
-            if (line.includes('Charging')) {
-                this.label.text = 'Charging';
-            } else {
-                const batteryPercentage = line.match(/\d+/);
-                if (batteryPercentage) {
-                    const percentage = parseInt(batteryPercentage[0], 10);
-                    this.label.text = `${percentage}%`;
+        for (const line of outputLines) {
+            if (line.startsWith('Battery:')) {
+                if (line.includes('Charging')) {
+                    status = 'Charging';
                 } else {
-                    this.label.text = 'N/A';
+                    const batteryPercentage = line.match(/\d+/);
+                    if (batteryPercentage) {
+                        const percentage = parseInt(batteryPercentage[0], 10);
+                        status = `${percentage}%`;
+                    } else {
+                        status= 'N/A';
+                    }
                 }
+                this.label.text = status;
+                return;
             }
-            return;
         }
     }
-}
 });
 
 class Extension {
