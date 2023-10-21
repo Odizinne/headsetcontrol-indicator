@@ -11,11 +11,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-//const _ = ExtensionUtils.gettext;
-
-const LOW_BATTERY_THRESHOLD = 10; // Set the low battery threshold (in percent)
-
-const UPDATE_INTERVAL_SECONDS = 10; // Set the update interval (in seconds)
+const UPDATE_INTERVAL_SECONDS = 5; // Set the update interval (in seconds)
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
@@ -100,28 +96,30 @@ class Indicator extends PanelMenu.Button {
         this.disableRGBItem.actor.hide(); // Hide the menu item
     }
 
-updateBatteryStatus() {
-    // Run the shell command and parse the output
-    const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+    updateBatteryStatus() {
+        // Run the shell command and parse the output
+        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+        const outputLines = stdout.toString().split('\n');
+        let status = '';
 
-    const outputLines = stdout.toString().split('\n');
-    for (const line of outputLines) {
-        if (line.startsWith('Battery:')) {
-            if (line.includes('Charging')) {
-                this.label.text = 'Charging';
-            } else {
-                const batteryPercentage = line.match(/\d+/);
-                if (batteryPercentage) {
-                    const percentage = parseInt(batteryPercentage[0], 10);
-                    this.label.text = `${percentage}%`;
+        for (const line of outputLines) {
+            if (line.startsWith('Battery:')) {
+                if (line.includes('Charging')) {
+                    status = 'Charging';
                 } else {
-                    this.label.text = 'N/A';
+                    const batteryPercentage = line.match(/\d+/);
+                    if (batteryPercentage) {
+                        const percentage = parseInt(batteryPercentage[0], 10);
+                        status = `${percentage}%`;
+                    } else {
+                        status= 'N/A';
+                    }
                 }
+                this.label.text = status;
+                return;
             }
-            return;
         }
     }
-}
 });
 
 export default class HeadsetControlIndicatorExtension extends Extension {
