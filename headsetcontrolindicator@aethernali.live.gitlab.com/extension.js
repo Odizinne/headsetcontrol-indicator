@@ -9,12 +9,13 @@ const PopupMenu = imports.ui.popupMenu;
 
 const _ = ExtensionUtils.gettext;
 
+let timerSourceId = null;
 const UPDATE_INTERVAL_SECONDS = 5; // Set the update interval (in seconds)
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
     _init() {
-        super._init(0.0, _('My Shiny Indicator'));
+        super._init(0.0, _('HeadsetControl Indicator'));
 
         const container = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
 
@@ -78,7 +79,7 @@ class Indicator extends PanelMenu.Button {
 
     updateCapabilities() {
         // Run the shell command and parse the output to check capabilities
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol --capabilities');
+        const stdout = GLib.spawn_command_line_sync('headsetcontrol --capabilities');
         const outputLines = stdout.toString().split('\n');
         for (const line of outputLines) {
             if (line.includes('lights')) {
@@ -96,29 +97,33 @@ class Indicator extends PanelMenu.Button {
 
     updateBatteryStatus() {
         // Run the shell command and parse the output
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+        const stdout = GLib.spawn_command_line_sync('headsetcontrol -b');
         const outputLines = stdout.toString().split('\n');
-        let status = '';
+        let status = 'N/A';
 
         for (const line of outputLines) {
-            if (line.startsWith('Battery:')) {
-                if (line.includes('Charging')) {
-                    status = 'Charging';
-                } else {
-                    const batteryPercentage = line.match(/\d+/);
-                    if (batteryPercentage) {
-                        const percentage = parseInt(batteryPercentage[0], 10);
+            if (line.includes('Battery: Charging')) {
+                status = 'Charging';
+            } else {
+                const batteryPercentage = line.match(/\d+/);
+                if (batteryPercentage) {
+                    const percentage = parseInt(batteryPercentage[0], 10);
+                    if (percentage > 0 && percentage <= 100) {
                         status = `${percentage}%`;
-                    } else {
-                        status= 'N/A';
                     }
                 }
-                this.label.text = status;
-                return;
             }
         }
+        this.label.text = status;
     }
 });
+
+    function removeTimer() {
+        if (timerSourceId !== null) {
+            GLib.SOURCE_REMOVE(timerSourceId);
+            timerSourceId = null;
+        }
+    }
 
 class Extension {
     constructor(uuid) {
@@ -135,6 +140,7 @@ class Extension {
     disable() {
         this._indicator.destroy();
         this._indicator = null;
+        this.removeTimer();
     }
 }
 
