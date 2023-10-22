@@ -11,12 +11,13 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import { Extension } from 'resource:///org/gnome/shell/extensions/extension.js';
 
-const UPDATE_INTERVAL_SECONDS = 5; // Set the update interval (in seconds)
+let timerSourceId = null;
+const UPDATE_INTERVAL_SECONDS = 5;
 
 const Indicator = GObject.registerClass(
 class Indicator extends PanelMenu.Button {
     _init() {
-        super._init(0.0, _('My Shiny Indicator'));
+        super._init(0.0, _('HeadsetControl Indicator'));
 
         const container = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
 
@@ -32,7 +33,7 @@ class Indicator extends PanelMenu.Button {
         labelBin.child = new St.Label({ text: '' });
         labelBin.y_align = Clutter.ActorAlign.CENTER;
 
-        // Add the icon bin and icon charging bin next to each other
+        // Add the icon bin and label bin next to each other
         container.add_child(iconBin);
         container.add_child(labelBin);
 
@@ -66,9 +67,8 @@ class Indicator extends PanelMenu.Button {
             this.updateCapabilities();
         });
         this.menu.addMenuItem(this.refreshCapabilitiesItem);
-        //this.refreshCapabilitiesItem.actor.hide(); // Initially hide the menu item
 	
-        this.updateCapabilities(); // Check headset capabilities
+        this.updateCapabilities(); 
         this.updateBatteryStatus();
 
         // Set up a timer to update the battery status at regular intervals
@@ -80,45 +80,42 @@ class Indicator extends PanelMenu.Button {
 
     updateCapabilities() {
         // Run the shell command and parse the output to check capabilities
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol --capabilities');
+        const stdout = GLib.spawn_command_line_sync('headsetcontrol --capabilities');
         const outputLines = stdout.toString().split('\n');
         for (const line of outputLines) {
             if (line.includes('lights')) {
-                this.rgbEnabled = true; // "lights" capability found
-                this.enableRGBItem.actor.show(); // Show the menu item
-                this.disableRGBItem.actor.show(); // Show the menu item
+                this.rgbEnabled = true; 
+                this.enableRGBItem.actor.show(); 
+                this.disableRGBItem.actor.show(); 
                 return;
             }
         }
         // If "lights" capability not found, disable RGB menu entries
         this.rgbEnabled = false;
-        this.enableRGBItem.actor.hide(); // Hide the menu item
-        this.disableRGBItem.actor.hide(); // Hide the menu item
+        this.enableRGBItem.actor.hide();
+        this.disableRGBItem.actor.hide();
     }
 
     updateBatteryStatus() {
         // Run the shell command and parse the output
-        const [result, stdout, stderr] = GLib.spawn_command_line_sync('headsetcontrol -b');
+        const stdout = GLib.spawn_command_line_sync('headsetcontrol -b');
         const outputLines = stdout.toString().split('\n');
-        let status = '';
+        let status = 'N/A';
 
         for (const line of outputLines) {
-            if (line.startsWith('Battery:')) {
-                if (line.includes('Charging')) {
-                    status = 'Charging';
-                } else {
-                    const batteryPercentage = line.match(/\d+/);
-                    if (batteryPercentage) {
-                        const percentage = parseInt(batteryPercentage[0], 10);
+            if (line.includes('Battery: Charging')) {
+                status = 'Charging';
+            } else {
+                const batteryPercentage = line.match(/\d+/);
+                if (batteryPercentage) {
+                    const percentage = parseInt(batteryPercentage[0], 10);
+                    if (percentage > 0 && percentage <= 100) {
                         status = `${percentage}%`;
-                    } else {
-                        status= 'N/A';
                     }
                 }
-                this.label.text = status;
-                return;
             }
         }
+        this.label.text = status;
     }
 });
 
@@ -134,7 +131,7 @@ export default class HeadsetControlIndicatorExtension extends Extension {
     }
 }
 
-function init(meta) {
-    return new HeadsetControlIndicatorExtension(meta.uuid);
-}
+    function init(meta) {
+        return new HeadsetControlIndicatorExtension(meta.uuid);
+    }
 
