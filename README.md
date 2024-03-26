@@ -16,7 +16,6 @@ This extension allow monitoring battery and toggling RGB lightning on/off for su
 
 ## Compatible gnome-shell version
 
-- 45 (Need testing)
 - 44
 - 43
 - 42
