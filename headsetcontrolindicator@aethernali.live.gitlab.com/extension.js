@@ -1,13 +1,14 @@
 const GETTEXT_DOMAIN = 'my-indicator-extension';
 
-const { GObject, St, Gio, GLib, Clutter } = imports.gi;
+import GObject from 'gi://GObject';
+import St from 'gi://St';
+import GLib from 'gi://GLib';
+import Clutter from 'gi://Clutter';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
-
-const _ = ExtensionUtils.gettext;
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import {Extension, gettext as _} from 'resource:///org/gnome/shell/extensions/extension.js';
 
 let timerSourceId = null;
 const UPDATE_INTERVAL_SECONDS = 5; // Set the update interval (in seconds)
@@ -19,7 +20,7 @@ class Indicator extends PanelMenu.Button {
 
         const container = new St.BoxLayout({ style_class: 'panel-status-menu-box' });
 
-        // Create a bin for headset the icon
+        // Create a bin for the headset icon
         const iconBin = new St.Bin();
         iconBin.child = new St.Icon({
             icon_name: 'audio-headset-symbolic',
@@ -31,7 +32,7 @@ class Indicator extends PanelMenu.Button {
         labelBin.child = new St.Label({ text: '' });
         labelBin.y_align = Clutter.ActorAlign.CENTER;
 
-        // Add the icon bin and icon charging bin next to each other
+        // Add the icon bin and label bin next to each other
         container.add_child(iconBin);
         container.add_child(labelBin);
 
@@ -65,13 +66,12 @@ class Indicator extends PanelMenu.Button {
             this.updateCapabilities();
         });
         this.menu.addMenuItem(this.refreshCapabilitiesItem);
-        //this.refreshCapabilitiesItem.actor.hide(); // Initially hide the menu item
 	
         this.updateCapabilities(); // Check headset capabilities
         this.updateBatteryStatus();
 
         // Set up a timer to update the battery status at regular intervals
-        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
+        timerSourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
             this.updateBatteryStatus();
             return GLib.SOURCE_CONTINUE;
         });
@@ -100,10 +100,11 @@ class Indicator extends PanelMenu.Button {
         const stdout = GLib.spawn_command_line_sync('headsetcontrol -b');
         const outputLines = stdout.toString().split('\n');
         let status = 'N/A';
-
+    
         for (const line of outputLines) {
-            if (line.includes('Battery: Charging')) {
+            if (line.includes('Status: BATTERY_CHARGING')) {
                 status = 'Charging';
+                break;  // Break the loop here
             } else {
                 const batteryPercentage = line.match(/\d+/);
                 if (batteryPercentage) {
@@ -118,33 +119,22 @@ class Indicator extends PanelMenu.Button {
     }
 });
 
-    function removeTimer() {
-        if (timerSourceId !== null) {
-            GLib.SOURCE_REMOVE(timerSourceId);
-            timerSourceId = null;
-        }
+function removeTimer() {
+    if (timerSourceId !== null) {
+        GLib.Source.remove(timerSourceId);
+        timerSourceId = null;
     }
+}
 
-class Extension {
-    constructor(uuid) {
-        this._uuid = uuid;
-
-        ExtensionUtils.initTranslations(GETTEXT_DOMAIN);
-    }
-
+export default class MyIndicatorExtension extends Extension {
     enable() {
         this._indicator = new Indicator();
-        Main.panel.addToStatusArea(this._uuid, this._indicator);
+        Main.panel._leftBox.insert_child_at_index(this._indicator.container, 1);
     }
 
     disable() {
         this._indicator.destroy();
         this._indicator = null;
-        this.removeTimer();
+        removeTimer();
     }
 }
-
-function init(meta) {
-    return new Extension(meta.uuid);
-}
-
