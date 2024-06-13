@@ -1,12 +1,9 @@
-import GObject from 'gi://GObject';
-import St from 'gi://St';
-import GLib from 'gi://GLib';
-import Clutter from 'gi://Clutter';
-import * as Main from 'resource:///org/gnome/shell/ui/main.js';
-import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
-import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
-import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
+const { GObject, St, Gio, GLib, Clutter } = imports.gi;
 
+const ExtensionUtils = imports.misc.extensionUtils;
+const Main = imports.ui.main;
+const PanelMenu = imports.ui.panelMenu;
+const PopupMenu = imports.ui.popupMenu;
 
 let timerSourceId = null;
 const UPDATE_INTERVAL_SECONDS = 5;
@@ -36,9 +33,6 @@ class Indicator extends PanelMenu.Button {
         this.label = labelBin.child;
         this.rgbEnabled = false;
 
-        this.chargingIconBin = new St.Bin({ style_class: 'panel-status-icon' });
-        this.chargingIconBin.child = new St.Icon({ style_class: 'system-status-icon' });
-
         this.enableRGBItem = new PopupMenu.PopupMenuItem(_('Enable RGB Lighting'));
         this.enableRGBItem.connect('activate', () => {
             GLib.spawn_command_line_sync('headsetcontrol -l 1');
@@ -51,10 +45,9 @@ class Indicator extends PanelMenu.Button {
         });
         this.menu.addMenuItem(this.disableRGBItem);
 
-        GLib.spawn_command_line_sync('headsetcontrol -l 0'); // Disable RGB lighting by default, personal preference, you can remove it if you want
         this.updateBatteryStatus();
 
-        timerSourceId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
+        GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, UPDATE_INTERVAL_SECONDS, () => {
             this.updateBatteryStatus();
             return GLib.SOURCE_CONTINUE;
         });
@@ -70,19 +63,15 @@ class Indicator extends PanelMenu.Button {
 
                 switch (battery.status) {
                     case 'BATTERY_UNAVAILABLE':
-                        this.chargingIconBin.child.icon_name = 'battery-missing-symbolic';
                         this.label.text = 'Off';
                         break;
                     case 'BATTERY_CHARGING':
-                        this.chargingIconBin.child.icon_name = 'battery-full-charging-symbolic';
                         this.label.text = 'Charging';
                         break;
                     case 'BATTERY_AVAILABLE':
-                        this.chargingIconBin.child.icon_name = 'battery-full-symbolic';
                         this.label.text = `${battery.level}%`;
                         break;
                     default:
-                        this.chargingIconBin.child.icon_name = 'battery-missing-symbolic';
                         this.label.text = '';
                         break;
                 }
@@ -93,17 +82,21 @@ class Indicator extends PanelMenu.Button {
     }
 });
 
-function removeTimer() {
-    if (timerSourceId !== null) {
-        GLib.Source.remove(timerSourceId);
-        timerSourceId = null;
+    function removeTimer() {
+        if (timerSourceId !== null) {
+            GLib.SOURCE_REMOVE(timerSourceId);
+            timerSourceId = null;
+        }
     }
-}
 
-export default class MyIndicatorExtension extends Extension {
+class Extension {
+    constructor(uuid) {
+        this._uuid = uuid;
+    }
+
     enable() {
         this._indicator = new Indicator();
-        Main.panel._leftBox.insert_child_at_index(this._indicator.container, 1);
+        Main.panel.addToStatusArea(this._uuid, this._indicator, 2, 'left');
     }
 
     disable() {
@@ -112,3 +105,8 @@ export default class MyIndicatorExtension extends Extension {
         removeTimer();
     }
 }
+
+function init(meta) {
+    return new Extension(meta.uuid);
+}
+
