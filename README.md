@@ -17,6 +17,10 @@ This extension allow monitoring battery and toggling RGB lightning on/off for su
 - 45
 - 46
 
+**oldgnome branch**
+
+- 45-
+
 ## Dependencies
 
 You need [HeadsetControl](https://github.com/Sapd/HeadsetControl#building) installed.
