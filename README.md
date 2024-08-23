@@ -1,5 +1,7 @@
 # HeadsetControl Indicator
 
+/!\ Deprecated and unmaintained, use [gnome-shell-extension-HeadsetControl](https://github.com/ChrisLauinger77/gnome-shell-extension-HeadsetControl) instead /!\
+
 Gnome extension using headsetcontrol to monitor battery.
 
 [<img src="images/Screenshot_from_2023-10-17_18-25-14.png">](images/Screenshot_from_2023-10-17_18-25-14.png)
